@@ -1,11 +1,13 @@
 import json
 import csv
 import argparse
+import os  # Импортирован для проверки существования и размера файла
 from extractor import Entity_Relationships_Recognition
+
 
 def process_kgx_json(json_data, nodes_filepath, edges_filepath):
     """
-    Обрабатывает JSON-данные, извлекает узлы и ребра и записывает их в TSV-файлы.
+    Обрабатывает JSON-данные, извлекает узлы и ребра и дозаписывает их в TSV-файлы.
 
     :param json_data: Словарь, содержащий данные графа.
     :param nodes_filepath: Путь к выходному файлу для узлов (nodes.tsv).
@@ -15,27 +17,28 @@ def process_kgx_json(json_data, nodes_filepath, edges_filepath):
     nodes = graph.get('nodes', [])
     edges = graph.get('edges', [])
 
-    # Определение заголовков для nodes.tsv в соответствии с требованиями
+    # --- Обработка и дозапись узлов в nodes.tsv ---
+
     node_headers = [
         'id', 'name', 'category', 'confidence_score', 'research_direction',
         'impact_score', 'source_type', 'maturity_level',
         'evidence_publication', 'explanation'
     ]
 
-    # Обработка и запись узлов в nodes.tsv
-    with open(nodes_filepath, 'w', newline='', encoding='utf-8') as f:
+    # Проверяем, нужно ли записывать заголовок.
+    # Записываем, только если файл не существует или пуст.
+    write_node_header = not os.path.exists(nodes_filepath) or os.path.getsize(nodes_filepath) == 0
+
+    with open(nodes_filepath, 'a', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=node_headers, delimiter='\t')
-        writer.writeheader()
+        if write_node_header:
+            writer.writeheader()
+        
         for node in nodes:
-            # Извлечение данных из 'additional_fields'
             additional_fields = node.get('additional_fields', {})
-            
-            # Преобразование списка публикаций в строку, разделенную '|'
             evidence_pub = additional_fields.get('evidence_publication')
-            if isinstance(evidence_pub, list):
-                evidence_pub_str = '|'.join(evidence_pub)
-            else:
-                evidence_pub_str = ''
+            # Преобразование списка публикаций в строку, разделенную '|'
+            evidence_pub_str = '|'.join(evidence_pub) if isinstance(evidence_pub, list) else ''
 
             row = {
                 'id': node.get('id'),
@@ -51,25 +54,27 @@ def process_kgx_json(json_data, nodes_filepath, edges_filepath):
             }
             writer.writerow(row)
     
-    print(f"Данные успешно записаны в {nodes_filepath}")
+    print(f"Данные узлов успешно дозаписаны в {nodes_filepath}")
 
-    # Определение заголовков для edges.tsv
+    # --- Обработка и дозапись ребер в edges.tsv ---
+
     edge_headers = [
         'subject', 'object', 'predicate', 'confidence_score', 
         'provided_by', 'evidence_publication'
     ]
+
+    # Аналогичная проверка для файла ребер
+    write_edge_header = not os.path.exists(edges_filepath) or os.path.getsize(edges_filepath) == 0
     
-    # Обработка и запись ребер в edges.tsv
-    with open(edges_filepath, 'w', newline='', encoding='utf-8') as f:
+    with open(edges_filepath, 'a', newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, fieldnames=edge_headers, delimiter='\t')
-        writer.writeheader()
+        if write_edge_header:
+            writer.writeheader()
+
         for edge in edges:
-            # Преобразование списка публикаций в строку, разделенную '|'
             evidence_pub = edge.get('evidence_publication')
-            if isinstance(evidence_pub, list):
-                evidence_pub_str = '|'.join(evidence_pub)
-            else:
-                evidence_pub_str = ''
+            # Преобразование списка публикаций в строку
+            evidence_pub_str = '|'.join(evidence_pub) if isinstance(evidence_pub, list) else ''
 
             row = {
                 'subject': edge.get('subject'),
@@ -81,21 +86,23 @@ def process_kgx_json(json_data, nodes_filepath, edges_filepath):
             }
             writer.writerow(row)
             
-    print(f"Данные успешно записаны в {edges_filepath}")
+    print(f"Данные ребер успешно дозаписаны в {edges_filepath}")
 
-try:
-    with open('prompts_and_shemes/test_article.txt', 'r', encoding='utf-8') as file:
-        article = file.read() 
-except FileNotFoundError:
-    print("Ошибка: Файл не найден! ")
 
 def main():
     """
     Главная функция для парсинга аргументов и запуска обработки.
     """
     parser = argparse.ArgumentParser(
-        description="Преобразует JSON-граф в TSV-файлы формата KGX."
+        description="Извлекает сущности и отношения из текстовой статьи и дозаписывает их в TSV-файлы формата KGX."
     )
+    # Позиционный аргумент для входного файла
+    parser.add_argument(
+        'input_file',
+        type=str,
+        help='Путь к входному текстовому файлу (статье).'
+    )
+    # Опциональные аргументы для выходных файлов
     parser.add_argument(
         '--nodes-file', 
         type=str, 
@@ -110,13 +117,27 @@ def main():
     )
     args = parser.parse_args()
 
+    # Чтение текста статьи из файла, указанного в аргументах
     try:
-        process_kgx_json(Entity_Relationships_Recognition(article_text=article), args.nodes_file, args.edges_file)
+        with open(args.input_file, 'r', encoding='utf-8') as file:
+            article_text = file.read() 
+    except FileNotFoundError:
+        print(f"Ошибка: Входной файл не найден по пути '{args.input_file}'")
+        return # Прекращаем выполнение, если файл не найден
+
+    # Основной блок обработки
+    try:
+        # 1. Извлечение данных из текста
+        kgx_data = Entity_Relationships_Recognition(article_text=article_text)
+        
+        # 2. Обработка и сохранение данных в TSV
+        process_kgx_json(kgx_data, args.nodes_file, args.edges_file)
 
     except json.JSONDecodeError:
-        print("Ошибка: Неверный формат JSON1.")
+        print("Ошибка: Неверный формат JSON получен от модуля распознавания.")
     except Exception as e:
         print(f"Произошла непредвиденная ошибка: {e}")
+
 
 if __name__ == '__main__':
     main()
