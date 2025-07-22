@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "graph": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "category": { "type": "string" },
+              "confidence_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+              "additional_fields": {
+                "type": "object",
+                "properties": {
+                  "research_direction": { "type": ["string", "null"] },
+                  "impact_score": { "type": ["number", "null"], "minimum": 0.0, "maximum": 1.0 },
+                  "source_type": { "type": ["string", "null"] },
+                  "maturity_level": { "type": ["string", "null"] },
+                  "effect_type": { "type": ["string", "null"] },
+                  "effect_value": { "type": ["number", "null"] },
+                  "effect_unit": { "type": ["string", "null"] },
+                  "biomarker_type": { "type": ["string", "null"] },
+                  "measurement_method": { "type": ["string", "null"] },
+                  "evidence_publication": { "type": ["array", "null"], "items": { "type": "string" } },
+                  "explanation": { "type": ["string", "null"] }
+                }
+              }
+            },
+            "required": ["id", "name", "category", "confidence_score", "additional_fields"]
+          }
+        },
+        "edges": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "subject": { "type": "string" },
+              "object": { "type": "string" },
+              "predicate": { "type": "string" },
+              "confidence_score": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+              "provided_by": { "type": "string" },
+              "evidence_publication": { "type": ["array", "null"], "items": { "type": "string" } }
+            },
+            "required": ["subject", "object", "predicate", "confidence_score", "provided_by"]
+          }
+        },
+        "clarifications": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "properties": {
+              "entity": { "type": "string" },
+              "question": { "type": "string" },
+              "options": { "type": "array", "items": { "type": "string" } }
+            },
+            "required": ["entity", "question", "options"]
+          }
+        }
+      },
+      "required": ["nodes", "edges"]
+    }
+  },
+  "required": ["graph"]
+}
