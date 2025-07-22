@@ -31,21 +31,13 @@ root ::= "<think>" [^<]+ "</think>" [\\n]* json-schema
 
 try:
     with open('prompts_and_shemes/main_extractor_prompt.txt', 'r', encoding='utf-8') as file:
-        main_extractor_prompt = file.read() 
-except FileNotFoundError:
-    print("Ошибка: Файл не найден! ")
-
-
-try:
-    with open('prompts_and_shemes/test_article.txt', 'r', encoding='utf-8') as file:
-        article = file.read() 
+        main_extractor_prompt = file.read()
 except FileNotFoundError:
     print("Ошибка: Файл не найден! ")
 
 try:
     with open('prompts_and_shemes/main_extractor_shema.json', 'r', encoding='utf-8') as f:
         main_extractor_schema = json.load(f)
-    print("Схема успешно загружена из файла.")
 except FileNotFoundError:
     print(f"Ошибка: файл схемы не найден ")
 
@@ -128,6 +120,3 @@ def Entity_Relationships_Recognition (article_text):
         
     except Exception as e:
         print(f"\nПроизошла ошибка при выполнении запроса: {e}")
-        
-res = Entity_Relationships_Recognition(article_text=article)
-print(res)
