@@ -1,0 +1,11 @@
+Entity in dataset;to Biolink Model
+Carbohydrate;biolink:Carbohydrate
+Disease;biolink:Disease
+Gene;biolink:Gene
+Lipid;biolink:Lipid
+Mutation;biolink:SequenceVariant
+Peptide;biolink:Polypeptide
+Pharmaceutical Preparations;biolink:Drug
+Protein;biolink:Protein
+RNA;biolink:Transcript
+Toxin;biolink:ChemicalEntity

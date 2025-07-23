@@ -1,0 +1,16 @@
+relationship in dataset;To biolink:predicate
+associated, associate, related, linked;biolink:associated_with
+include, included;biolink:has_member
+increase, increased, increases;biolink:increases
+decrease, reduced, reduce;biolink:decreases
+affect, affects;biolink:affects
+cause, caused, lead, result;biolink:causes
+contribute, contributes;biolink:contributes_to
+prevent, preventative;biolink:prevents
+treat, treated;biolink:treats
+play;biolink:participates_in
+involved, occur, occurring;biolink:participates_in
+characterized;biolink:has_attribute
+develop;biolink:progresses_from
+compare, compared;biolink:related_to
+found, observed, present, identified, show;biolink:related_to_at_instance_level
